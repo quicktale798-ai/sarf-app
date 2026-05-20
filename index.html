@@ -179,9 +179,11 @@
     background: var(--card);
     border-bottom: 1px solid var(--border);
     padding: 14px 24px;
+    padding-top: max(14px, env(safe-area-inset-top, 14px));
     display: flex;
     align-items: center;
     gap: 8px;
+    position: sticky; top: 0; z-index: 50;
   }
   .dot { width:12px; height:12px; border-radius:50%; }
   .dot-red { background:#ff5f57; }
@@ -219,7 +221,7 @@
   .dash-nav-item.active { color:var(--green); border-right-color:var(--green); background:var(--green-dim); }
   .dash-nav-icon { font-size:18px; width:22px; text-align:center; }
 
-  .dash-main { padding:28px; overflow:auto; }
+  .dash-main { padding:20px; overflow:auto; }
 
   /* greeting */
   .dash-greeting { margin-bottom:24px; }
@@ -375,6 +377,11 @@
     .dash-layout { grid-template-columns:1fr; }
     .dash-sidebar { display:none; }
     footer { padding:24px 20px; flex-direction:column; text-align:center; }
+    .dot { display:none; }
+    .dash-topbar { padding: 52px 16px 12px; }
+    .dash-topbar-title { font-size:15px; font-weight:600; color:var(--white); }
+    .dash-main { padding:16px; }
+    .s-card-amount { font-size:18px; }
   }
 </style>
 </head>
@@ -736,6 +743,8 @@
 // State
 let transactions = [];
 
+function formatNum(n){ return n.toLocaleString('en-US'); }
+
 // Date
 const d = new Date();
 const days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -829,7 +838,7 @@ function updateHome(){
     const color = isIncome ? 'g' : 'r';
     const sign  = isIncome ? '+' : '-';
     const cls   = isIncome ? 'plus' : 'minus';
-    const timeStr = t.date.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+    const timeStr = t.date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
     return `<div class="tx-row">
       <div class="tx-info">
         <div class="tx-icon ${color}">${icon}</div>
