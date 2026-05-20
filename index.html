@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>صرف — تطبيق إدارة مالية ذكي</title>
+<meta name="description" content="تطبيق مالي شخصي لإدارة الدخل والمصاريف بذكاء">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="صرف">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --black2: #111111;
+    --card: #161616;
+    --card2: #1e1e1e;
+    --border: #2a2a2a;
+    --green: #00e676;
+    --green2: #00c853;
+    --green-dim: rgba(0,230,118,0.12);
+    --green-glow: rgba(0,230,118,0.25);
+    --red: #ff5252;
+    --red-dim: rgba(255,82,82,0.12);
+    --white: #f0f0f0;
+    --gray: #888;
+    --gray2: #555;
+    --font: 'IBM Plex Sans Arabic', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  .back-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--card2); color:var(--gray);
+    border:1px solid var(--border); padding:8px 16px; border-radius:8px;
+    font-family:var(--font); font-size:13px; cursor:pointer;
+    transition:.2s; margin-bottom:16px;
+  }
+  .back-btn:hover { color:var(--white); border-color:var(--gray); }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top:0; right:0; left:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 18px 48px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-size:26px; font-weight:700; color:var(--green); letter-spacing:-1px; }
+  .nav-links { display:flex; gap:32px; list-style:none; }
+  .nav-links a { color:var(--gray); text-decoration:none; font-size:14px; transition:.2s; }
+  .nav-links a:hover { color:var(--white); }
+  .nav-cta {
+    background: var(--green); color: var(--black);
+    border:none; padding:10px 24px; border-radius:8px;
+    font-family:var(--font); font-weight:700; font-size:14px;
+    cursor:pointer; transition:.2s;
+  }
+  .nav-cta:hover { background:var(--green2); transform:translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:120px 24px 80px;
+    position:relative; overflow:hidden;
+  }
+  .hero-bg {
+    position:absolute; inset:0; z-index:0;
+    background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(0,230,118,0.08) 0%, transparent 70%);
+  }
+  .hero-grid {
+    position:absolute; inset:0; z-index:0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity:0.3;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 70%);
+  }
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--green-dim); border:1px solid rgba(0,230,118,0.3);
+    color:var(--green); padding:6px 16px; border-radius:99px;
+    font-size:13px; font-weight:500; margin-bottom:28px;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge span { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero h1 {
+    font-size: clamp(48px,8vw,96px);
+    font-weight:700; line-height:1.05;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+  .hero h1 .accent { color:var(--green); }
+  .hero p {
+    max-width:520px; margin:20px auto 0;
+    color:var(--gray); font-size:18px; line-height:1.7;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+  .hero-btns {
+    display:flex; gap:16px; margin-top:36px;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease 0.3s both;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .btn-primary {
+    background:var(--green); color:var(--black);
+    border:none; padding:14px 32px; border-radius:10px;
+    font-family:var(--font); font-weight:700; font-size:16px;
+    cursor:pointer; transition:.2s;
+  }
+  .btn-primary:hover { background:var(--green2); transform:translateY(-2px); box-shadow:0 8px 32px var(--green-glow); }
+  .btn-ghost {
+    background:transparent; color:var(--white);
+    border:1px solid var(--border); padding:14px 32px; border-radius:10px;
+    font-family:var(--font); font-weight:500; font-size:16px;
+    cursor:pointer; transition:.2s;
+  }
+  .btn-ghost:hover { border-color:var(--gray); transform:translateY(-2px); }
+
+  /* hero stats */
+  .hero-stats {
+    display:flex; gap:48px; margin-top:72px;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease 0.4s both;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .stat { text-align:center; }
+  .stat-num { font-size:32px; font-weight:700; color:var(--green); }
+  .stat-label { color:var(--gray); font-size:13px; margin-top:4px; }
+
+  /* ─── SECTION TITLE ─── */
+  .section { padding:80px 48px; max-width:1100px; margin:0 auto; }
+  .section-label { color:var(--green); font-size:13px; font-weight:600; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
+  .section-title { font-size:clamp(28px,4vw,44px); font-weight:700; line-height:1.2; margin-bottom:16px; }
+  .section-sub { color:var(--gray); font-size:16px; line-height:1.7; max-width:500px; }
+
+  /* ─── FEATURES ─── */
+  .features-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:16px; margin-top:48px;
+  }
+  .feat-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:28px;
+    transition:.3s; cursor:default;
+  }
+  .feat-card:hover { border-color:rgba(0,230,118,0.3); transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,0.4); }
+  .feat-icon { font-size:28px; margin-bottom:16px; }
+  .feat-title { font-size:17px; font-weight:600; margin-bottom:8px; }
+  .feat-desc { color:var(--gray); font-size:14px; line-height:1.6; }
+
+  /* ─── DASHBOARD PREVIEW ─── */
+  .dashboard-wrap {
+    background: var(--black2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 48px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .dash-topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot-red { background:#ff5f57; }
+  .dot-yellow { background:#febc2e; }
+  .dot-green { background:#28c840; }
+  .dash-topbar-title {
+    margin-right:auto; margin-left:auto;
+    color:var(--gray); font-size:13px;
+  }
+
+  /* actual dashboard UI */
+  #dashboard {
+    display: none;
+    padding: 0;
+  }
+  #landing { display: block; }
+
+  .dash-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 580px;
+  }
+  .dash-sidebar {
+    background: var(--card);
+    border-left: 1px solid var(--border);
+    padding: 24px 0;
+  }
+  .dash-logo { padding:0 20px 24px; font-size:22px; font-weight:700; color:var(--green); border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .dash-nav-item {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 20px; font-size:14px; color:var(--gray);
+    cursor:pointer; transition:.2s; border-right:3px solid transparent;
+  }
+  .dash-nav-item:hover { color:var(--white); background:rgba(255,255,255,0.04); }
+  .dash-nav-item.active { color:var(--green); border-right-color:var(--green); background:var(--green-dim); }
+  .dash-nav-icon { font-size:18px; width:22px; text-align:center; }
+
+  .dash-main { padding:28px; overflow:auto; }
+
+  /* greeting */
+  .dash-greeting { margin-bottom:24px; }
+  .dash-greeting h2 { font-size:22px; font-weight:700; }
+  .dash-greeting p { color:var(--gray); font-size:13px; margin-top:4px; }
+
+  /* summary cards */
+  .summary-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  .s-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:18px;
+  }
+  .s-card-label { font-size:12px; color:var(--gray); margin-bottom:8px; }
+  .s-card-amount { font-size:22px; font-weight:700; }
+  .s-card-amount.green { color:var(--green); }
+  .s-card-amount.red { color:var(--red); }
+  .s-card-amount.white { color:var(--white); }
+  .s-card-sub { font-size:11px; color:var(--gray2); margin-top:4px; }
+
+  /* quick actions */
+  .quick-row { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+  .q-btn {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 18px; border-radius:9px; font-family:var(--font);
+    font-size:13px; font-weight:600; cursor:pointer; border:none; transition:.2s;
+  }
+  .q-btn:hover { transform:translateY(-2px); }
+  .q-btn.green { background:var(--green); color:var(--black); }
+  .q-btn.red { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,82,82,0.3); }
+  .q-btn.gray { background:var(--card2); color:var(--white); border:1px solid var(--border); }
+
+  /* two-col */
+  .two-col { display:grid; grid-template-columns:1fr 340px; gap:16px; }
+
+  /* transactions */
+  .dash-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:20px;
+  }
+  .dash-card-title { font-size:15px; font-weight:600; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+  .dash-card-title span { font-size:12px; color:var(--green); cursor:pointer; }
+  .tx-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 0; border-bottom:1px solid var(--border);
+  }
+  .tx-row:last-child { border-bottom:none; }
+  .tx-info { display:flex; align-items:center; gap:10px; }
+  .tx-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .tx-icon.g { background:var(--green-dim); }
+  .tx-icon.r { background:var(--red-dim); }
+  .tx-name { font-size:14px; font-weight:500; }
+  .tx-cat { font-size:11px; color:var(--gray); margin-top:2px; }
+  .tx-amount { font-size:15px; font-weight:700; }
+  .tx-amount.plus { color:var(--green); }
+  .tx-amount.minus { color:var(--red); }
+
+  /* mini chart */
+  .mini-chart { display:flex; align-items:flex-end; gap:6px; height:80px; margin-top:16px; }
+  .bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .bar { width:100%; border-radius:4px 4px 0 0; transition:.3s; }
+  .bar.income { background:var(--green); opacity:.8; }
+  .bar.expense { background:var(--red); opacity:.7; }
+  .bar-label { font-size:9px; color:var(--gray); }
+
+  /* obligations */
+  .ob-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0; border-bottom:1px solid var(--border);
+  }
+  .ob-row:last-child { border-bottom:none; }
+  .ob-info { display:flex; flex-direction:column; gap:3px; }
+  .ob-title { font-size:14px; font-weight:500; }
+  .ob-due { font-size:11px; color:var(--gray); }
+  .ob-right { text-align:left; }
+  .ob-amount { font-size:14px; font-weight:700; color:var(--white); }
+  .ob-status {
+    display:inline-block; font-size:10px; padding:2px 8px; border-radius:99px; margin-top:3px;
+  }
+  .ob-status.unpaid { background:rgba(255,82,82,0.15); color:var(--red); }
+  .ob-status.soon { background:rgba(255,193,7,0.15); color:#ffc107; }
+
+  /* add form */
+  .add-form { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-label { font-size:12px; color:var(--gray); }
+  .form-input {
+    background:var(--card2); border:1px solid var(--border);
+    color:var(--white); padding:10px 14px; border-radius:8px;
+    font-family:var(--font); font-size:14px; outline:none; transition:.2s;
+  }
+  .form-input:focus { border-color:var(--green); }
+  .tag-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .tag {
+    padding:6px 14px; border-radius:99px; font-size:13px;
+    background:var(--card2); border:1px solid var(--border);
+    cursor:pointer; transition:.2s; color:var(--gray);
+  }
+  .tag:hover, .tag.active { background:var(--green-dim); border-color:rgba(0,230,118,.4); color:var(--green); }
+  .save-btn {
+    grid-column:1/-1; background:var(--green); color:var(--black);
+    border:none; padding:13px; border-radius:9px;
+    font-family:var(--font); font-weight:700; font-size:15px;
+    cursor:pointer; transition:.2s; margin-top:6px;
+  }
+  .save-btn:hover { background:var(--green2); }
+
+  /* ─── HOW IT WORKS ─── */
+  .steps { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:24px; margin-top:48px; }
+  .step { text-align:center; padding:32px 24px; background:var(--card); border:1px solid var(--border); border-radius:16px; }
+  .step-num { width:48px; height:48px; border-radius:12px; background:var(--green-dim); border:1px solid rgba(0,230,118,.3); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:22px; color:var(--green); font-weight:700; }
+  .step h3 { font-size:17px; font-weight:600; margin-bottom:8px; }
+  .step p { color:var(--gray); font-size:13px; line-height:1.6; }
+
+  /* ─── CTA SECTION ─── */
+  .cta-section {
+    text-align:center; padding:100px 24px;
+    background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(0,230,118,0.07) 0%, transparent 70%);
+  }
+  .cta-section h2 { font-size:clamp(32px,5vw,56px); font-weight:700; margin-bottom:16px; }
+  .cta-section p { color:var(--gray); font-size:17px; margin-bottom:36px; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top:1px solid var(--border); padding:32px 48px;
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--gray); font-size:13px; flex-wrap:wrap; gap:12px;
+  }
+  footer .footer-logo { font-size:20px; font-weight:700; color:var(--green); }
+
+  /* ─── TOGGLE ─── */
+  .view-toggle {
+    display:flex; gap:0; margin-top:28px; justify-content:center;
+    position:relative; z-index:1;
+    animation: fadeUp 0.6s ease 0.5s both;
+  }
+  .toggle-btn {
+    padding:9px 24px; font-family:var(--font); font-size:13px;
+    cursor:pointer; border:1px solid var(--border); transition:.2s;
+    background:var(--card); color:var(--gray);
+  }
+  .toggle-btn:first-child { border-radius:8px 0 0 8px; }
+  .toggle-btn:last-child { border-radius:0 8px 8px 0; border-right:1px solid var(--border); }
+  .toggle-btn.active { background:var(--green-dim); color:var(--green); border-color:rgba(0,230,118,.4); }
+
+  /* responsiveness */
+  @media(max-width:768px) {
+    nav { padding:14px 20px; }
+    .nav-links { display:none; }
+    .section { padding:60px 20px; }
+    .summary-cards { grid-template-columns:repeat(2,1fr); }
+    .two-col { grid-template-columns:1fr; }
+    .dash-layout { grid-template-columns:1fr; }
+    .dash-sidebar { display:none; }
+    footer { padding:24px 20px; flex-direction:column; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">صرف</div>
+  <ul class="nav-links">
+    <li><a href="#features">المميزات</a></li>
+    <li><a href="#how">كيف يعمل</a></li>
+    <li><a href="#dashboard-section">لوحة التحكم</a></li>
+  </ul>
+  <button class="nav-cta" onclick="showDashboard()">جرّب لوحة التحكم</button>
+</nav>
+
+<!-- HERO -->
+<section id="landing">
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-badge"><span></span> متاح قريبًا على iOS و Android</div>
+  <h1>سيطر على <span class="accent">فلوسك</span><br>بسرعة الضوء</h1>
+  <p>تطبيق مالي شخصي يجمع دخلك من أوبر، محلّك، وراتبك — كل شيء في مكان واحد.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="showDashboard()">🚀 جرّب الآن مجانًا</button>
+    <button class="btn-ghost" onclick="scrollTo('#features')">اكتشف المميزات</button>
+  </div>
+  <div class="view-toggle">
+    <button class="toggle-btn active" id="btn-land" onclick="showLanding()">🏠 الصفحة الرئيسية</button>
+    <button class="toggle-btn" id="btn-dash" onclick="showDashboard()">📊 لوحة التحكم</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">٣٠ ث</div><div class="stat-label">وقت التسجيل لكل عملية</div></div>
+    <div class="stat"><div class="stat-num">١٠٠٪</div><div class="stat-label">تحكم كامل في ميزانيتك</div></div>
+    <div class="stat"><div class="stat-num">صفر</div><div class="stat-label">تعقيد — بسيط للغاية</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label">المميزات</div>
+  <div class="section-title">كل ما تحتاجه في تطبيق واحد</div>
+  <p class="section-sub">مصمّم خصيصًا لمن لديه أكثر من مصدر دخل وأكثر من جيب</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">الإضافة السريعة</div>
+      <div class="feat-desc">اكتب "50 بنزين" فقط — والتطبيق يفهم التصنيف والمبلغ تلقائيًا بدون تعقيد.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">تقارير ذكية</div>
+      <div class="feat-desc">شوف أرباحك الحقيقية من أوبر، المحل، والراتب — مقسّمة ومرتّبة بشكل احترافي.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📄</div>
+      <div class="feat-title">إدارة الالتزامات</div>
+      <div class="feat-desc">فواتير، أقساط، ديون — كلها أمامك مع تذكير قبل الاستحقاق بيومين.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💳</div>
+      <div class="feat-title">متعدد الحسابات</div>
+      <div class="feat-desc">كاش، بنك، STC Pay، بطاقة — تتبع كل حساب على حدة أو الكل مرة واحدة.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔔</div>
+      <div class="feat-title">تنبيهات ذكية</div>
+      <div class="feat-desc">لا تنسى أي فاتورة أو قسط — نبهّك قبل الموعد ونحذّرك عند تجاوز الميزانية.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🌙</div>
+      <div class="feat-title">وضع ليلي أنيق</div>
+      <div class="feat-desc">تصميم داكن احترافي يريح عيونك في الليل ويعطيك إحساس التطبيقات المالية الكبيرة.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how" style="background:var(--black2); max-width:100%; padding:80px 48px;">
+<div style="max-width:1100px; margin:0 auto;">
+  <div class="section-label">كيف يعمل</div>
+  <div class="section-title">ثلاث خطوات وانتهى</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">١</div>
+      <h3>أضف العملية</h3>
+      <p>اكتب المبلغ والتصنيف — في أقل من ٣٠ ثانية من لحظة وقوع المعاملة.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">٢</div>
+      <h3>تابع يوميًا</h3>
+      <p>الصفحة الرئيسية تعطيك صورة كاملة عن يومك وشهرك في لمحة واحدة.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">٣</div>
+      <h3>حلّل واستثمر</h3>
+      <p>التقارير الشهرية تكشف وين يروح فلوسك — واتخذ قرارات مالية أذكى.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">٤</div>
+      <h3>لا تنسى شيء</h3>
+      <p>الفواتير والأقساط والديون — كلها مرصودة وتنبيهاتها تصلك في الوقت المناسب.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section" id="dashboard-section">
+  <h2>جاهز تتحكم في فلوسك؟</h2>
+  <p>جرّب لوحة التحكم الآن — بدون تسجيل أو بطاقة بنكية</p>
+  <button class="btn-primary" style="font-size:17px;padding:16px 40px;" onclick="showDashboard()">🚀 ابدأ الآن مجانًا</button>
+</div>
+
+<footer>
+  <div class="footer-logo">صرف</div>
+  <div>تطبيق مالي شخصي لإدارة الدخل والمصاريف بذكاء</div>
+  <div>© 2025 صرف — جميع الحقوق محفوظة</div>
+</footer>
+</section>
+
+<!-- ─── DASHBOARD ─── -->
+<section id="dashboard">
+<div class="dash-topbar">
+  <div class="dot dot-red"></div>
+  <div class="dot dot-yellow"></div>
+  <div class="dot dot-green"></div>
+  <div class="dash-topbar-title">صرف — لوحة التحكم</div>
+  <button onclick="showLanding()" style="
+    background:var(--card2); color:var(--gray);
+    border:1px solid var(--border); padding:6px 16px; border-radius:7px;
+    font-family:var(--font); font-size:13px; cursor:pointer; transition:.2s;
+  " onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">
+    🏠 الصفحة الرئيسية
+  </button>
+</div>
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <div class="dash-sidebar">
+    <div class="dash-logo">صرف 💰</div>
+    <div class="dash-nav-item active" onclick="setPage('home',this)"><span class="dash-nav-icon">🏠</span> الرئيسية</div>
+    <div class="dash-nav-item" onclick="setPage('add-expense',this)"><span class="dash-nav-icon">➖</span> إضافة مصروف</div>
+    <div class="dash-nav-item" onclick="setPage('add-income',this)"><span class="dash-nav-icon">➕</span> إضافة دخل</div>
+    <div class="dash-nav-item" onclick="setPage('obligations',this)"><span class="dash-nav-icon">📄</span> الالتزامات</div>
+    <div class="dash-nav-item" onclick="setPage('reports',this)"><span class="dash-nav-icon">📊</span> التقارير</div>
+    <div class="dash-nav-item" onclick="setPage('accounts',this)"><span class="dash-nav-icon">💳</span> الحسابات</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="dash-main">
+
+    <!-- HOME PAGE -->
+    <div id="page-home">
+      <div class="dash-greeting">
+        <h2>السلام عليكم 👋</h2>
+        <p id="today-date"></p>
+      </div>
+      <div class="summary-cards">
+        <div class="s-card">
+          <div class="s-card-label">الرصيد الكلي</div>
+          <div class="s-card-amount white" id="total-balance">٠ ر.س</div>
+          <div class="s-card-sub">لم تُضف أي عملية بعد</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">دخل اليوم</div>
+          <div class="s-card-amount green" id="today-income">+٠ ر.س</div>
+          <div class="s-card-sub">لا يوجد دخل اليوم</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">مصروف اليوم</div>
+          <div class="s-card-amount red" id="today-expense">-٠ ر.س</div>
+          <div class="s-card-sub">لا يوجد مصروف اليوم</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">عدد العمليات</div>
+          <div class="s-card-amount white" id="tx-count">٠</div>
+          <div class="s-card-sub">إجمالي العمليات</div>
+        </div>
+      </div>
+      <div class="quick-row">
+        <button class="q-btn red" onclick="setPage('add-expense',document.querySelectorAll('.dash-nav-item')[1])">➖ إضافة مصروف</button>
+        <button class="q-btn green" onclick="setPage('add-income',document.querySelectorAll('.dash-nav-item')[2])">💰 إضافة دخل</button>
+        <button class="q-btn gray" onclick="setPage('obligations',document.querySelectorAll('.dash-nav-item')[3])">📄 الالتزامات</button>
+        <button class="q-btn gray" onclick="setPage('reports',document.querySelectorAll('.dash-nav-item')[4])">📊 التقارير</button>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">آخر العمليات</div>
+        <div id="tx-list">
+          <div style="text-align:center;padding:40px 20px;color:var(--gray);">
+            <div style="font-size:40px;margin-bottom:12px;">📭</div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:6px;">لا توجد عمليات بعد</div>
+            <div style="font-size:13px;">ابدأ بإضافة دخل أو مصروف</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD EXPENSE PAGE -->
+    <div id="page-add-expense" style="display:none;">
+      <button class="back-btn" onclick="goHome()">&#8594; رجوع</button>
+      <div class="dash-greeting"><h2>➖ إضافة مصروف</h2><p>سجّل مصروف جديد بسرعة</p></div>
+      <div class="dash-card" style="max-width:560px;">
+        <div class="add-form">
+          <div class="form-group full">
+            <label class="form-label">المبلغ (ريال)</label>
+            <input id="exp-amount" class="form-input" type="number" placeholder="٠ ريال" style="font-size:24px;text-align:center;" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">التصنيف</label>
+            <div class="tag-row" id="exp-cat-row">
+              <div class="tag active" onclick="toggleTag(this)">⛽ بنزين</div>
+              <div class="tag" onclick="toggleTag(this)">🍔 أكل</div>
+              <div class="tag" onclick="toggleTag(this)">☕ قهوة</div>
+              <div class="tag" onclick="toggleTag(this)">🏪 محل</div>
+              <div class="tag" onclick="toggleTag(this)">📄 فاتورة</div>
+              <div class="tag" onclick="toggleTag(this)">🔧 صيانة</div>
+              <div class="tag" onclick="toggleTag(this)">📦 أخرى</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">نوع العملية</label>
+            <div class="tag-row" id="exp-type-row">
+              <div class="tag active" onclick="toggleTag(this)">شخصية</div>
+              <div class="tag" onclick="toggleTag(this)">المحل</div>
+              <div class="tag" onclick="toggleTag(this)">أوبر</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">طريقة الدفع</label>
+            <div class="tag-row" id="exp-pay-row">
+              <div class="tag active" onclick="toggleTag(this)">💵 كاش</div>
+              <div class="tag" onclick="toggleTag(this)">🏦 بنك</div>
+              <div class="tag" onclick="toggleTag(this)">📱 STC Pay</div>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">ملاحظات (اختياري)</label>
+            <input id="exp-notes" class="form-input" type="text" placeholder="مثلاً: تعبئة فل كامل" />
+          </div>
+          <button class="save-btn" onclick="saveExpense()">✅ حفظ العملية</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD INCOME PAGE -->
+    <div id="page-add-income" style="display:none;">
+      <button class="back-btn" onclick="goHome()">&#8594; رجوع</button>
+      <div class="dash-greeting"><h2>💰 إضافة دخل</h2><p>سجّل دخل جديد</p></div>
+      <div class="dash-card" style="max-width:560px;">
+        <div class="add-form">
+          <div class="form-group full">
+            <label class="form-label">المبلغ (ريال)</label>
+            <input id="inc-amount" class="form-input" type="number" placeholder="٠ ريال" style="font-size:24px;text-align:center;" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">المصدر</label>
+            <div class="tag-row" id="inc-src-row">
+              <div class="tag active" onclick="toggleTag(this)">🚗 أوبر</div>
+              <div class="tag" onclick="toggleTag(this)">🏪 المحل</div>
+              <div class="tag" onclick="toggleTag(this)">💸 تحويل</div>
+              <div class="tag" onclick="toggleTag(this)">💼 راتب</div>
+              <div class="tag" onclick="toggleTag(this)">📦 أخرى</div>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">طريقة الاستلام</label>
+            <div class="tag-row" id="inc-pay-row">
+              <div class="tag active" onclick="toggleTag(this)">💵 كاش</div>
+              <div class="tag" onclick="toggleTag(this)">🏦 بنك</div>
+              <div class="tag" onclick="toggleTag(this)">📱 STC Pay</div>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">ملاحظات (اختياري)</label>
+            <input id="inc-notes" class="form-input" type="text" placeholder="مثلاً: دخل يوم الجمعة" />
+          </div>
+          <button class="save-btn" onclick="saveIncome()">✅ حفظ العملية</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBLIGATIONS PAGE -->
+    <div id="page-obligations" style="display:none;">
+      <button class="back-btn" onclick="goHome()">&#8594; رجوع</button>
+      <div class="dash-greeting"><h2>📄 الالتزامات</h2><p>الفواتير والأقساط والديون</p></div>
+      <div class="dash-card">
+        <div style="text-align:center;padding:40px 20px;color:var(--gray);">
+          <div style="font-size:40px;margin-bottom:12px;">📋</div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">لا توجد التزامات مضافة</div>
+          <div style="font-size:13px;">أضف فواتيرك وأقساطك لتتابعها</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS PAGE -->
+    <div id="page-reports" style="display:none;">
+      <button class="back-btn" onclick="goHome()">&#8594; رجوع</button>
+      <div class="dash-greeting"><h2>📊 التقارير</h2><p id="reports-month"></p></div>
+      <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="s-card"><div class="s-card-label">إجمالي الدخل</div><div class="s-card-amount green">+٠ ر.س</div></div>
+        <div class="s-card"><div class="s-card-label">إجمالي المصروف</div><div class="s-card-amount red">-٠ ر.س</div></div>
+        <div class="s-card"><div class="s-card-label">صافي الربح</div><div class="s-card-amount white">٠ ر.س</div></div>
+        <div class="s-card"><div class="s-card-label">عدد العمليات</div><div class="s-card-amount white">٠</div></div>
+      </div>
+      <div class="dash-card">
+        <div style="text-align:center;padding:40px 20px;color:var(--gray);">
+          <div style="font-size:40px;margin-bottom:12px;">📈</div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">لا توجد بيانات كافية للتقارير</div>
+          <div style="font-size:13px;">أضف عمليات دخل ومصروف لتظهر التقارير</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS PAGE -->
+    <div id="page-accounts" style="display:none;">
+      <button class="back-btn" onclick="goHome()">&#8594; رجوع</button>
+      <div class="dash-greeting"><h2>💳 الحسابات</h2><p>رصيدك في كل حساب</p></div>
+      <div class="summary-cards">
+        <div class="s-card">
+          <div class="s-card-label">🏦 البنك</div>
+          <div class="s-card-amount white">٠ ر.س</div>
+          <div class="s-card-sub">لم تُضف عمليات بنكية</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">💵 كاش</div>
+          <div class="s-card-amount white">٠ ر.س</div>
+          <div class="s-card-sub">لم تُضف عمليات كاش</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">📱 STC Pay</div>
+          <div class="s-card-amount white">٠ ر.س</div>
+          <div class="s-card-sub">لم تُضف عمليات</div>
+        </div>
+        <div class="s-card">
+          <div class="s-card-label">💳 بطاقة</div>
+          <div class="s-card-amount white">٠ ر.س</div>
+          <div class="s-card-sub">لم تُضف عمليات</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dash-main -->
+</div><!-- /dash-layout -->
+
+
+</section>
+
+<!-- TOAST -->
+<div id="toast" style="
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--green);color:var(--black);
+  padding:13px 28px;border-radius:99px;font-weight:700;font-size:15px;
+  opacity:0;transition:.3s;z-index:999;pointer-events:none;
+">✅ تم الحفظ بنجاح!</div>
+
+<script>
+// State
+let transactions = [];
+
+// Date
+const d = new Date();
+const days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const el = document.getElementById('today-date');
+if(el) el.textContent = `${days[d.getDay()]}، ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+const rm = document.getElementById('reports-month');
+if(rm) rm.textContent = `${months[d.getMonth()]} ${d.getFullYear()}`;
+
+function showLanding(){
+  document.getElementById('landing').style.display='block';
+  document.getElementById('dashboard').style.display='none';
+  document.querySelector('nav').style.display='flex';
+}
+function showDashboard(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.querySelector('nav').style.display='none';
+  goHome();
+}
+function goHome(){
+  setPageById('home');
+  document.querySelectorAll('.dash-nav-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item')[0].classList.add('active');
+}
+function setPage(name, el){
+  setPageById(name);
+  document.querySelectorAll('.dash-nav-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+function setPageById(name){
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.style.display='none');
+  document.getElementById('page-'+name).style.display='block';
+}
+function toggleTag(el){
+  el.parentNode.querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── SAVE EXPENSE ──
+function saveExpense(){
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if(!amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  const cat = document.querySelector('#exp-cat-row .tag.active')?.textContent.trim() || 'أخرى';
+  const notes = document.getElementById('exp-notes').value.trim();
+  transactions.unshift({ type:'expense', amount, label: notes||cat, cat, date: new Date() });
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-notes').value='';
+  showToast('✅ تم حفظ المصروف!');
+  updateHome();
+  setTimeout(()=>goHome(), 1000);
+}
+
+// ── SAVE INCOME ──
+function saveIncome(){
+  const amount = parseFloat(document.getElementById('inc-amount').value);
+  if(!amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  const src = document.querySelector('#inc-src-row .tag.active')?.textContent.trim() || 'أخرى';
+  const notes = document.getElementById('inc-notes').value.trim();
+  transactions.unshift({ type:'income', amount, label: notes||src, cat: src, date: new Date() });
+  document.getElementById('inc-amount').value='';
+  document.getElementById('inc-notes').value='';
+  showToast('✅ تم حفظ الدخل!');
+  updateHome();
+  setTimeout(()=>goHome(), 1000);
+}
+
+// ── UPDATE HOME PAGE ──
+function updateHome(){
+  const todayIncome  = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const todayExpense = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const balance = todayIncome - todayExpense;
+
+  document.getElementById('total-balance').textContent = formatNum(balance) + ' ر.س';
+  document.getElementById('today-income').textContent  = '+' + formatNum(todayIncome) + ' ر.س';
+  document.getElementById('today-expense').textContent = '-' + formatNum(todayExpense) + ' ر.س';
+  document.getElementById('tx-count').textContent      = transactions.length;
+
+  const list = document.getElementById('tx-list');
+  if(transactions.length === 0){
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--gray);">
+      <div style="font-size:40px;margin-bottom:12px;">📭</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:6px;">لا توجد عمليات بعد</div>
+      <div style="font-size:13px;">ابدأ بإضافة دخل أو مصروف</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = transactions.slice(0,10).map(t=>{
+    const isIncome = t.type==='income';
+    const icon = isIncome ? '💰' : '💸';
+    const color = isIncome ? 'g' : 'r';
+    const sign  = isIncome ? '+' : '-';
+    const cls   = isIncome ? 'plus' : 'minus';
+    const timeStr = t.date.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="tx-row">
+      <div class="tx-info">
+        <div class="tx-icon ${color}">${icon}</div>
+        <div><div class="tx-name">${t.label}</div><div class="tx-cat">${isIncome?'دخل':'مصروف'} • ${t.cat} • ${timeStr}</div></div>
+      </div>
+      <div class="tx-amount ${cls}">${sign}${formatNum(t.amount)} ر.س</div>
+    </div>`;
+  }).join('');
+}
+
+function formatNum(n){ return n.toLocaleString('ar-SA'); }
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(80px)';},2000);
+}
+function scrollTo(id){ document.querySelector(id)?.scrollIntoView({behavior:'smooth'}); }
+
+// Register Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
